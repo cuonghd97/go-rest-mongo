@@ -1,7 +1,8 @@
 package main
 
 import (
-	"./controllers"
+	"go-mongo/controllers"
+
 	"github.com/gin-gonic/gin"
 	"gopkg.in/mgo.v2"
 )

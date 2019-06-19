@@ -1,7 +1,8 @@
 package controllers
 
 import (
-	"../models"
+	"go-mongo/models"
+
 	"github.com/gin-gonic/gin"
 	"gopkg.in/mgo.v2"
 )
