@@ -1,0 +1,3 @@
+controllers/user.go:9:2: cannot find package "golang.org/x/crypto/bcrypt" in any of:
+	/usr/src/golang.org/x/crypto/bcrypt (from $GOROOT)
+	/home/meditech/go/src/golang.org/x/crypto/bcrypt (from $GOPATH)

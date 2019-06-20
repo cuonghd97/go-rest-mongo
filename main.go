@@ -4,24 +4,18 @@ import (
 	"go-mongo/controllers"
 
 	"github.com/gin-gonic/gin"
-	"gopkg.in/mgo.v2"
 )
 
 func main() {
-	uc := controllers.NewUserController(getSession())
+	// uc := controllers.NewUserController(getSession())
 
+	// userController := controllers.UserController{}
 	router := gin.Default()
-	router.POST("/users", uc.CreateUser)
-
+	router.POST("/users", controllers.CreateUser)
+	router.GET("/users/:id", controllers.GetById)
+	router.GET("/list-users", controllers.AllUser)
+	router.POST("/login", controllers.Login)
+	router.DELETE("/users/:id", controllers.Delete)
+	router.PATCH("/users/:id", controllers.Update)
 	router.Run()
-}
-
-func getSession() *mgo.Session {
-	s, err := mgo.Dial("mongodb://localhost")
-
-	if err != nil {
-		panic(err)
-	}
-
-	return s
 }

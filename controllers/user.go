@@ -2,51 +2,138 @@ package controllers
 
 import (
 	"go-mongo/models"
+	"log"
 
 	"github.com/gin-gonic/gin"
-	"gopkg.in/mgo.v2"
 )
 
-type UserController struct {
-	session *mgo.Session
-}
-
-const (
-	DB_NAME       = "go_mongo"
-	DB_COLLECTION = "user"
-)
-
-func NewUserController(s *mgo.Session) *UserController {
-	return &UserController{s}
-}
+type UserController struct{}
 
 // Create new user
-func (uc UserController) CreateUser(c *gin.Context) {
-	var json models.User
-	c.Bind(&json)
-	u := uc.create_user(json.Username, json.Password, c)
-	if u.Username == json.Username {
-		content := gin.H{
-			"result": "create success",
-		}
-		c.Writer.Header().Set("Content-Type", "application/json")
-		c.JSON(201, content)
-	} else {
-		c.JSON(500, gin.H{
-			"msg": "Internal server error",
+func CreateUser(c *gin.Context) {
+	var postData models.User
+	err := c.BindJSON(&postData)
+
+	if err != nil {
+		c.JSON(200, gin.H{
+			"msg": "something went wrong",
 		})
+		return
 	}
+	_, err = models.FindByUsername(postData.Username)
+	if err == nil {
+		c.JSON(200, gin.H{
+			"msg": "user already exist",
+		})
+		return
+	}
+
+	models.Create(postData)
+	c.JSON(200, gin.H{
+		"msg": "create user success",
+	})
 }
 
-func (uc UserController) create_user(Username string, Password string, c *gin.Context) models.User {
-	user := models.User{
-		Username: Username,
-		Password: Password,
+func AllUser(c *gin.Context) {
+	listUser, err := models.GetAll()
+	if err != nil {
+		c.JSON(200, gin.H{
+			"msg": "something went wrong",
+		})
+		return
 	}
+	c.JSON(200, gin.H{
+		"users": listUser,
+	})
+}
 
-	uc.session.DB(DB_NAME).C(DB_COLLECTION).Insert(&user)
-	// if err := us.session.DB(DB_NAME).C(DB_COLLECTION).UpdateId(oid, &user); err != nil {
+func GetById(c *gin.Context) {
+	id := c.Param("id")
+	if models.CheckId(id) == false {
+		c.JSON(200, gin.H{
+			"msg": "wrong id",
+		})
+		return
+	}
+	user, err := models.FindById(id)
+	if err != nil {
+		c.JSON(200, gin.H{
+			"msg": "Not found",
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"user": user,
+	})
+}
 
-	// }
-	return user
+func Login(c *gin.Context) {
+	var postData models.User
+	err := c.BindJSON(&postData)
+	if err != nil {
+		c.JSON(200, gin.H{
+			"msg": "something went wrong",
+		})
+		return
+	}
+	err = models.Auth(postData)
+	if err != nil {
+		c.JSON(200, gin.H{
+			"msg": "wrong password or username",
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"msg": "loggedin",
+	})
+}
+
+func Delete(c *gin.Context) {
+	id := c.Param("id")
+	if models.CheckId(id) == false {
+		c.JSON(200, gin.H{
+			"msg": "wrong id",
+		})
+		return
+	}
+	err := models.RemoveById(id)
+	log.Println(err)
+	if err != nil {
+		c.JSON(200, gin.H{
+			"msg": "something went wrong",
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"msg": "Delete success",
+	})
+}
+
+func Update(c *gin.Context) {
+	var postData models.Update
+	err := c.BindJSON(&postData)
+	if err != nil {
+		c.JSON(200, gin.H{
+			"msg": "wrong data",
+		})
+		return
+	}
+	id := c.Param("id")
+	if models.CheckId(id) == false {
+		c.JSON(200, gin.H{
+			"msg": "wrong id",
+		})
+		return
+	}
+	err = models.UpdateById(id, postData)
+	log.Println(err)
+	if err != nil {
+		c.JSON(200, gin.H{
+			"msg": "error",
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"msg": "update",
+	})
 }
