@@ -7,9 +7,6 @@ import (
 )
 
 func main() {
-	// uc := controllers.NewUserController(getSession())
-
-	// userController := controllers.UserController{}
 	router := gin.Default()
 	router.POST("/users", controllers.CreateUser)
 	router.GET("/users/:id", controllers.GetById)
